@@ -27,6 +27,7 @@ struct alphaMods{
   uint8_t vvlCorrection;
   uint8_t alphaNcorrection;
   uint8_t gCamTime = 0;
+  uint8_t stallCount = 0;
   
   //**
 };
@@ -63,6 +64,13 @@ void RPMdance();
 void initialiseAlphaPins();
 void alpha4hz();
 void alphaCorrections();
+void forceStallOff();
+void forceStallOffTimer();
+void ghostCam();
+void ghostCamTimer();
+void cltTimer();
+void perMSfunc();
+
 static inline uint8_t correctionVVL();
 static inline uint8_t correctionAlphaN();
 uint16_t WOTdwellCorrection(uint16_t);
@@ -73,7 +81,6 @@ static inline int8_t correctionZeroThrottleTiming(int8_t advance);
 static inline bool correctionDFCO2();
 static inline int8_t correctionTimingAlphaN(int8_t advance);
 static inline int8_t correctionAtUpshift(int8_t advance);
-void ghostCam();
 
 void alphaTableSetup();
 

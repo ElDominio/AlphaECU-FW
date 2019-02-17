@@ -42,37 +42,17 @@ void oneMSInterval() //Most ARM chips can simply call a function
 {
   ms_counter++;
 
-  if(alphaVars.carSelect == 5){
-    alphaVars.gCamTime++;
-    if(alphaVars.gCamTime > constrain(map(currentStatus.RPM, 1000, 4000, 100, 20), 20, 100)){
-      if(BIT_CHECK(alphaVars.alphaBools2, BIT_GCAM_STATE)){
-        BIT_CLEAR(alphaVars.alphaBools2, BIT_GCAM_STATE);
-      }
-      else{BIT_SET(alphaVars.alphaBools2, BIT_GCAM_STATE);}
-      alphaVars.gCamTime = 0;
-    }
-  }
+  ghostCamTimer();
   
   //Increment Loop Counters
   loop33ms++;
   loop66ms++;
   loop100ms++;
   loop250ms++;
- if (alphaVars.carSelect != 255){
-    loopCLT++; //alphamods
-  }
+  loopCLT++; //alphamods
   loopSec++;
 
-  switch(alphaVars.carSelect){
-    case 1:
-      XRSgaugeCLT();
-      break;
-    case 4:
-      audiFanControl();
-      break;
-    default:
-      break;
-  }
+  perMSfunc();
   unsigned long targetOverdwellTime;
 
   //Overdwell check
@@ -118,20 +98,7 @@ if (loop100ms == 100)
 
     //Loop executed every CLT loop
   //Anything inside this if statement will run every CLTms.
-  switch(alphaVars.carSelect){
-    case 1:
-      if (loopCLT == 400){
-        loopCLT = 0; // Reset counter
-      }
-      break;
-     case 4:
-      if (loopCLT == 200){
-        loopCLT = 0;
-      }
-      break;
-     default:
-     break;
-  }
+  cltTimer();
 //alphamods  
 
 
@@ -194,6 +161,7 @@ if (loop100ms == 100)
   	}
    if (alphaVars.carSelect != 255){
     DFCOwaitFunc();
+    forceStallOffTimer();
    }
    
     //alphamods

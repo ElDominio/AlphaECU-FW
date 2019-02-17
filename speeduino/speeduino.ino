@@ -105,8 +105,10 @@ void loop()
       currentStatus.PW1 = 0;
       currentStatus.VE = 0;
       toothLastToothTime = 0;
-	    BIT_CLEAR(alphaVars.alphaBools2, BIT_CRK_ALLOW);
+      
+	    BIT_CLEAR(alphaVars.alphaBools2, BIT_CRK_ALLOW); //alphamods
       BIT_CLEAR(alphaVars.alphaBools2, BIT_SKIP_TOOTH);
+      
       toothLastSecToothTime = 0;
       //toothLastMinusOneToothTime = 0;
       currentStatus.hasSync = false;
@@ -130,6 +132,7 @@ void loop()
       BIT_CLEAR(currentStatus.engine, BIT_ENGINE_ASE); //Same as above except for ASE status
       //This is a safety check. If for some reason the interrupts have got screwed up (Leading to 0rpm), this resets them.
       //It can possibly be run much less frequently.
+      forceStallOff();
       initialiseTriggers();
 
       VVT_PIN_LOW();

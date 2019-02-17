@@ -508,12 +508,83 @@ static inline int8_t correctionRollingAntiLag(int8_t advance)
 }
 
 void ghostCam(){
-  if ((currentStatus.coolant > 55) && (!BIT_CHECK(currentStatus.engine, BIT_ENGINE_ASE)) && (currentStatus.TPS < 25) && (currentStatus.RPM > 1000) && (currentStatus.RPM < 4000) && (!BIT_CHECK(currentStatus.engine, BIT_ENGINE_CRANK)) && (alphaVars.carSelect == 5)) {
+  
+  if ((currentStatus.coolant > 55) && (!BIT_CHECK(currentStatus.engine, BIT_ENGINE_ASE)) && 
+    (currentStatus.TPS < 25) && (currentStatus.RPM > 1000) && (currentStatus.RPM < 4000) && (!BIT_CHECK(currentStatus.engine, BIT_ENGINE_CRANK)) && (alphaVars.carSelect == 5)) {
     if(BIT_CHECK(alphaVars.alphaBools2, BIT_GCAM_STATE)){
       BIT_SET(currentStatus.spark, BIT_SPARK_HRDLIM);
     }
     else{
       BIT_CLEAR(currentStatus.spark, BIT_SPARK_HRDLIM);
     }
+  }
+}
+
+void ghostCamTimer(){
+    if(alphaVars.carSelect == 5){
+    static uint16_t startRPM = 1000;
+    static uint16_t endRPM = 3800;
+    static uint8_t maxIgnOffTime = 100;
+    static uint8_t minIgnOffTime = 20;
+    alphaVars.gCamTime++;
+    if(alphaVars.gCamTime > constrain(map(currentStatus.RPM, startRPM, endRPM, maxIgnOffTime, minIgnOffTime), minIgnOffTime, maxIgnOffTime)){
+      if(BIT_CHECK(alphaVars.alphaBools2, BIT_GCAM_STATE)){
+        BIT_CLEAR(alphaVars.alphaBools2, BIT_GCAM_STATE);
+      }
+      else{BIT_SET(alphaVars.alphaBools2, BIT_GCAM_STATE);}
+      alphaVars.gCamTime = 0;
+    }
+  }
+}
+
+void forceStallOff(){
+ /* if (!(BIT_CHECK(alphaVars.bools1, BIT_STALL_WAIT))){
+    BIT_SET(alphaVars.bools1, BIT_STALL_WAIT);
+  }*/
+  if(alphaVars.stallCount < 1){
+    alphaVars.stallCount++;
+  }
+}
+
+void forceStallOffTimer(){
+  static uint8_t stallWaitTime = 3;
+  if (alphaVars.stallCount >= 1){
+    BIT_SET(currentStatus.spark, BIT_SPARK_HRDLIM);
+    alphaVars.stallCount++;
+  }
+  else if (alphaVars.stallCount > stallWaitTime){
+    //BIT_CLEAR(alphaVars.bools1, BIT_STALL_WAIT);
+    BIT_CLEAR(currentStatus.spark, BIT_SPARK_HRDLIM);
+    alphaVars.stallCount = 0;
+  }
+}
+
+void cltTimer(){
+  switch(alphaVars.carSelect){
+    case 1:
+      if (loopCLT == 400){
+        loopCLT = 0; // Reset counter
+      }
+      break;
+     case 4:
+      if (loopCLT == 200){
+        loopCLT = 0;
+      }
+      break;
+     default:
+     break;
+  }
+}
+
+void perMSfunc(){
+  switch(alphaVars.carSelect){
+    case 1:
+      XRSgaugeCLT();
+      break;
+    case 4:
+      audiFanControl();
+      break;
+    default:
+      break;
   }
 }

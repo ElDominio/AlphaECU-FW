@@ -21,7 +21,7 @@ uint16_t staged_req_fuel_mult_pri;
 uint16_t staged_req_fuel_mult_sec;
 
 bool ignitionOn = false; //The current state of the ignition system
-bool fuelOn = false; //The current state of the ignition system
+bool fuelOn = false; //The current state of the injection system
 
 byte cltCalibrationTable[CALIBRATION_TABLE_SIZE];
 byte iatCalibrationTable[CALIBRATION_TABLE_SIZE];
