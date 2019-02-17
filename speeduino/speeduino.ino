@@ -101,6 +101,8 @@ void loop()
     else
     {
       //We reach here if the time between teeth is too great. This VERY likely means the engine has stopped
+      
+      forceStallOff();
       currentStatus.RPM = 0;
       currentStatus.PW1 = 0;
       currentStatus.VE = 0;
@@ -132,7 +134,6 @@ void loop()
       BIT_CLEAR(currentStatus.engine, BIT_ENGINE_ASE); //Same as above except for ASE status
       //This is a safety check. If for some reason the interrupts have got screwed up (Leading to 0rpm), this resets them.
       //It can possibly be run much less frequently.
-      forceStallOff();
       initialiseTriggers();
 
       VVT_PIN_LOW();

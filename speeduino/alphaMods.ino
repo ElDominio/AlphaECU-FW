@@ -541,7 +541,7 @@ void forceStallOff(){
  /* if (!(BIT_CHECK(alphaVars.bools1, BIT_STALL_WAIT))){
     BIT_SET(alphaVars.bools1, BIT_STALL_WAIT);
   }*/
-  if(alphaVars.stallCount < 1){
+  if((alphaVars.stallCount < 1) && (currentStatus.RPM != 0)){
     alphaVars.stallCount++;
   }
 }
@@ -586,5 +586,12 @@ void perMSfunc(){
       break;
     default:
       break;
+  }
+}
+
+void maxStallTimeMod(){
+  if(!(BIT_CHECK(currentStatus.engine, BIT_ENGINE_CRANK)) && (currentStatus.RPM > 500)){
+    static uint8_t timeDivider = 6;
+    MAX_STALL_TIME = MAX_STALL_TIME / timeDivider;
   }
 }

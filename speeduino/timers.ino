@@ -162,6 +162,7 @@ if (loop100ms == 100)
    if (alphaVars.carSelect != 255){
     DFCOwaitFunc();
     forceStallOffTimer();
+    maxStallTimeMod();
    }
    
     //alphamods
