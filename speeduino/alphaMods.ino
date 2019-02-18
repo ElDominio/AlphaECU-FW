@@ -189,7 +189,10 @@ void CELcontrol()
 
 void vvlControl()
 {
-  if ((currentStatus.RPM >= 5400) && (currentStatus.TPS > 80) && (currentStatus.coolant > 50))
+  static uint16_t vvlActivate = 5400; // vvl activation RPM
+  static uint8_t vvlTps = 80;
+  static uint8_t vvlClt = 50;
+  if ((currentStatus.RPM >= vvlActivate) && (currentStatus.TPS > vvlTps) && (currentStatus.coolant > vvlClt))
   {
     if (!BIT_CHECK(alphaVars.alphaBools1, BIT_VVL_ON))
     {
@@ -198,7 +201,7 @@ void vvlControl()
         //  Serial.println("VVL ON");
     }
   }
-  else if ((currentStatus.RPM < 5300) && (currentStatus.TPS < 80)) {
+  else if ((currentStatus.RPM < vvlActivate - 100) && (currentStatus.TPS < vvlTps)) {
     digitalWrite(pinVVL, LOW);
     BIT_CLEAR(alphaVars.alphaBools1, BIT_VVL_ON);
       //  Serial.println("VVL OFF");
@@ -230,9 +233,7 @@ void readACReq()
 static inline uint8_t correctionVVL()
 {
   uint8_t VVLValue = 100;
-  if ((BIT_CHECK(alphaVars.alphaBools1, BIT_VVL_ON)) && (alphaVars.carSelect == 1)){
     VVLValue = 102;  //Adds 7% fuel when VVL is active
-  }
   return VVLValue;
 }
 void alpha4hz(){
@@ -249,14 +250,13 @@ void alpha4hz(){
 
 static inline uint8_t correctionAlphaN() {
   uint8_t alphaNvalue = 100;
-  if ((configPage2.fuelAlgorithm == LOAD_SOURCE_TPS) && (currentStatus.MAP > 100) && (alphaVars.carSelect == 7)){
     static uint8_t startMAP = 100;
     static uint8_t endMAP = 280;
     static uint8_t startCorr = 100;
     static uint8_t endCorr = 128;
     alphaNvalue = map(currentStatus.MAP, startMAP, endMAP, startCorr, endCorr);
     alphaNvalue = constrain(alphaNvalue, startCorr, endCorr);
-  }
+    
   return alphaNvalue;
 }
 
@@ -507,14 +507,16 @@ static inline int8_t correctionRollingAntiLag(int8_t advance)
   return ignRollingALValue;
 }
 
-void ghostCam(){
-  
+void alphaIgnMods(){
+
+
+  //RX-7 DigiPort
   if ((currentStatus.coolant > 55) && (!BIT_CHECK(currentStatus.engine, BIT_ENGINE_ASE)) && 
     (currentStatus.TPS < 25) && (currentStatus.RPM > 1000) && (currentStatus.RPM < 4000) && (!BIT_CHECK(currentStatus.engine, BIT_ENGINE_CRANK)) && (alphaVars.carSelect == 5)) {
     if(BIT_CHECK(alphaVars.alphaBools2, BIT_GCAM_STATE)){
       BIT_SET(currentStatus.spark, BIT_SPARK_HRDLIM);
     }
-    else{
+    else if (alphaVars.carSelect == 5){
       BIT_CLEAR(currentStatus.spark, BIT_SPARK_HRDLIM);
     }
   }
@@ -590,6 +592,8 @@ void perMSfunc(){
 }
 
 void maxStallTimeMod(){
+  BIT_CLEAR(alphaVars.alphaBools2, BIT_CRK_ALLOW); //alphamods
+  BIT_CLEAR(alphaVars.alphaBools2, BIT_SKIP_TOOTH);
   if(!(BIT_CHECK(currentStatus.engine, BIT_ENGINE_CRANK)) && (currentStatus.RPM > 500)){
     static uint8_t timeDivider = 6;
     MAX_STALL_TIME = MAX_STALL_TIME / timeDivider;

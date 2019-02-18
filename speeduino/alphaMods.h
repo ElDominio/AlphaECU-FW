@@ -71,6 +71,7 @@ void ghostCamTimer();
 void cltTimer();
 void perMSfunc();
 void maxStallTimeMod();
+void alphaIgnMods();
 
 static inline uint8_t correctionVVL();
 static inline uint8_t correctionAlphaN();

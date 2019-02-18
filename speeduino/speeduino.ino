@@ -102,14 +102,11 @@ void loop()
     {
       //We reach here if the time between teeth is too great. This VERY likely means the engine has stopped
       
-      forceStallOff();
+      forceStallOff(); //alphamods
       currentStatus.RPM = 0;
       currentStatus.PW1 = 0;
       currentStatus.VE = 0;
       toothLastToothTime = 0;
-      
-	    BIT_CLEAR(alphaVars.alphaBools2, BIT_CRK_ALLOW); //alphamods
-      BIT_CLEAR(alphaVars.alphaBools2, BIT_SKIP_TOOTH);
       
       toothLastSecToothTime = 0;
       //toothLastMinusOneToothTime = 0;
@@ -546,12 +543,9 @@ void loop()
 
       //***********************************************************************************************
       //| BEGIN IGNITION CALCULATIONS
+      alphaIgnMods();
       if (currentStatus.RPM > ((unsigned int)(configPage4.HardRevLim) * 100) ) { BIT_SET(currentStatus.spark, BIT_SPARK_HRDLIM); } //Hardcut RPM limit
       else { BIT_CLEAR(currentStatus.spark, BIT_SPARK_HRDLIM); }
-
-      if(alphaVars.carSelect == 5){
-        ghostCam();
-      } //alphamods
 
       //Set dwell
       //Dwell is stored as ms * 10. ie Dwell of 4.3ms would be 43 in configPage4. This number therefore needs to be multiplied by 100 to get dwell in uS

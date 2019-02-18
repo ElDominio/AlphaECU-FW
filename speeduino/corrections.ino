@@ -75,13 +75,18 @@ static inline byte correctionsFuel()
   if (activeCorrections == 3) { sumCorrections = sumCorrections / powint(100,activeCorrections); activeCorrections = 0; }
 
 	  //alphamods
-  alphaVars.vvlCorrection = correctionVVL();
-  if (alphaVars.vvlCorrection != 100) { sumCorrections = (sumCorrections * alphaVars.vvlCorrection); activeCorrections++; }
-  if (activeCorrections == 3) { sumCorrections = sumCorrections / powint(100,activeCorrections); activeCorrections = 0; }
+  if(BIT_CHECK(alphaVars.alphaBools1, BIT_VVL_ON)){
+    alphaVars.vvlCorrection = correctionVVL();
+    if (alphaVars.vvlCorrection != 100) { sumCorrections = (sumCorrections * alphaVars.vvlCorrection); activeCorrections++; }
+    if (activeCorrections == 3) { sumCorrections = sumCorrections / powint(100,activeCorrections); activeCorrections = 0; }
+  }
 
-  alphaVars.alphaNcorrection = correctionAlphaN();
-  if (alphaVars.alphaNcorrection != 100) { sumCorrections = (sumCorrections * alphaVars.alphaNcorrection); activeCorrections++; }
-  if (activeCorrections == 3) { sumCorrections = sumCorrections / powint(100,activeCorrections); activeCorrections = 0; }
+  
+  if ((configPage2.fuelAlgorithm == LOAD_SOURCE_TPS) && (currentStatus.MAP > 100) && (alphaVars.carSelect == 7)){
+    alphaVars.alphaNcorrection = correctionAlphaN();
+    if (alphaVars.alphaNcorrection != 100) { sumCorrections = (sumCorrections * alphaVars.alphaNcorrection); activeCorrections++; }
+    if (activeCorrections == 3) { sumCorrections = sumCorrections / powint(100,activeCorrections); activeCorrections = 0; }
+  }
   //alphamods
   
   currentStatus.flexCorrection = correctionFlex();

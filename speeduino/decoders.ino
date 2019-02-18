@@ -549,7 +549,7 @@ void triggerSec_DualWheel()
       if(BIT_CHECK(alphaVars.alphaBools2, BIT_SKIP_TOOTH)){
         BIT_CLEAR(alphaVars.alphaBools2, BIT_SKIP_TOOTH);
       }
-      else{ BIT_SET(alphaVars.alphaBools2, BIT_SKIP_TOOTH);}
+      else{ BIT_SET(alphaVars.alphaBools2, BIT_SKIP_TOOTH);} //alphamods
     }
   }
   else{

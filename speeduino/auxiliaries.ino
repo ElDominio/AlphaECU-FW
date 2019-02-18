@@ -37,7 +37,7 @@ void fanControl()
     if ( configPage2.fanWhenOff ) { fanPermit = true; }
     else { fanPermit = BIT_CHECK(currentStatus.engine, BIT_ENGINE_RUN); }
 
-    if ( (currentStatus.coolant >= onTemp && fanPermit) || BIT_CHECK(alphaVars.alphaBools1, BIT_AC_ON) )
+    if ( (currentStatus.coolant >= onTemp && fanPermit) || BIT_CHECK(alphaVars.alphaBools1, BIT_AC_ON) ) //alphamods
     {
       //Fan needs to be turned on. Checked for normal or inverted fan signal
       if( configPage6.fanInv == 0 ) { FAN_PIN_HIGH(); }
