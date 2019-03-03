@@ -170,7 +170,8 @@ if (loop100ms == 100)
     //Check whether fuel pump priming is complete
     if(fpPrimed == false)
     {
-      if(currentStatus.secl >= configPage2.fpPrime)
+      //fpPrimeTime is the time that the pump priming started. This is 0 on startup, but can be changed if the unit has been running on USB power and then had the ignition turned on (Which starts the priming again)
+      if( (currentStatus.secl - fpPrimeTime) >= configPage2.fpPrime)
       {
         fpPrimed = true; //Mark the priming as being completed
         if(currentStatus.RPM == 0)
