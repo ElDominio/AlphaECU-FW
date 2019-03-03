@@ -28,6 +28,8 @@ struct alphaMods{
   uint8_t alphaNcorrection;
   uint8_t gCamTime = 0;
   uint8_t stallCount = 0;
+  uint32_t camElapsedTime = 0;
+  uint32_t lastCamAngleCalc = 0;
   
   //**
 };
@@ -72,6 +74,7 @@ void cltTimer();
 void perMSfunc();
 void maxStallTimeMod();
 void alphaIgnMods();
+void getCamAngle_VVT();
 
 static inline uint8_t correctionVVL();
 static inline uint8_t correctionAlphaN();
