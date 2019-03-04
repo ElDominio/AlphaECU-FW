@@ -108,7 +108,7 @@ if (loop100ms == 100)
   {
     loop250ms = 0; //Reset Counter
     BIT_SET(TIMER_mask, BIT_TIMER_4HZ);
-    #if defined(CORE_STM32) //debug purpose, only visal for running code
+    #if defined(CORE_STM32) //debug purpose, only visual for running code
       digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     #endif
 
