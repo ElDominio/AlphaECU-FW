@@ -600,7 +600,7 @@ void maxStallTimeMod(){
   }
 }
 
-int getCamAngle_VVT()
+uint16_t getCamAngle_VVT()
 {
   if( configPage4.trigPatternSec == SEC_TRIGGER_4_1 ){
     //This is the current angle ATDC the engine is at. This is the last known position based on what tooth was last 'seen'. It is only accurate to the resolution of the trigger wheel (Eg 36-1 is 10 degrees)

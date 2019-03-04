@@ -22,8 +22,8 @@ struct alphaMods{
   bool highIdleReq;*/ //raises idle in open loop to evade stalling
   uint8_t highIdleCount = 0;// counts to wait for normal idle
   uint8_t DFCOcounter = 0;// counts cycles till dfco
-  uint8_t alphaBools1 = B00000000;
-  uint8_t alphaBools2 = B00000000;
+  uint8_t alphaBools1 = 0;
+  uint8_t alphaBools2 = 0;
   uint8_t vvlCorrection;
   uint8_t alphaNcorrection;
   uint8_t gCamTime = 0;
@@ -74,7 +74,7 @@ void cltTimer();
 void perMSfunc();
 void maxStallTimeMod();
 void alphaIgnMods();
-void getCamAngle_VVT();
+uint16_t getCamAngle_VVT();
 
 static inline uint8_t correctionVVL();
 static inline uint8_t correctionAlphaN();
