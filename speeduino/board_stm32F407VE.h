@@ -13,7 +13,7 @@
   #define USE_SERIAL3
   void initBoard();
   uint16_t freeRam();
-//  extern void oneMSIntervalIRQ(stimer_t *Timer);
+  extern void oneMSIntervalIRQ(stimer_t *Timer);
   
   extern void EmptyIRQCallback(stimer_t *Timer, uint32_t channel);
  /*

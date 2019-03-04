@@ -602,6 +602,7 @@ void maxStallTimeMod(){
 
 uint16_t getCamAngle_VVT()
 {
+  int camAngle;
   if( configPage4.trigPatternSec == SEC_TRIGGER_4_1 ){
     //This is the current angle ATDC the engine is at. This is the last known position based on what tooth was last 'seen'. It is only accurate to the resolution of the trigger wheel (Eg 36-1 is 10 degrees)
     unsigned long temptoothLastSecToothTime;
@@ -615,7 +616,7 @@ uint16_t getCamAngle_VVT()
     temptoothLastSecToothTime = toothLastSecToothTime;
     interrupts();
 
-    int camAngle = ((tempsecondaryToothCount - 1) * 180) + camCalibrationAngle; //Number of teeth that have passed since tooth 1, multiplied by the angle each tooth represents, plus the angle that tooth 1 is ATDC. This gives accuracy only to the nearest tooth.
+    camAngle = ((tempsecondaryToothCount - 1) * 180) + camCalibrationAngle; //Number of teeth that have passed since tooth 1, multiplied by the angle each tooth represents, plus the angle that tooth 1 is ATDC. This gives accuracy only to the nearest tooth.
     
     //Sequential check (simply sets whether we're on the first or 2nd revoltuion of the cycle)
     //if ( (tempRevolutionOne == true) && (configPager4.TrigSpeed == CRANK_SPEED) ) { camAngle += 360; }
@@ -627,7 +628,7 @@ uint16_t getCamAngle_VVT()
     if (camAngle >= 720) { camAngle -= 720; }
     else if (camAngle > CRANK_ANGLE_MAX) { camAngle -= CRANK_ANGLE_MAX; }
     if (camAngle < 0) { camAngle += CRANK_ANGLE_MAX; }
-
-    return camAngle;
+    
   }
+  return camAngle;
 }
