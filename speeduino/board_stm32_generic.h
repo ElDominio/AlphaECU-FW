@@ -1,7 +1,6 @@
 #ifndef STM32_H
 #define STM32_H
-#if defined(CORE_STM32)
-#include <Fram.h>
+#if defined(CORE_STM32_GENERIC)
 
 /*
 ***********************************************************************************************************
@@ -12,6 +11,7 @@
   #define micros_safe() micros() //timer5 method is not used on anything but AVR, the micros_safe() macro is simply an alias for the normal micros()
   #ifndef USE_SERIAL3
   #define USE_SERIAL3
+  #define EEPROM_LIB_H <Fram.h>
   #endif
   void initBoard();
   uint16_t freeRam();
@@ -20,8 +20,9 @@
     #define Serial Serial1
   #endif
 
-  #if defined(ARDUINO_BLACK_F407VE) || defined(STM32F4) || defined(_STM32F4_)
-  FramClass EEPROM(PB0, PB3, PB4, PB5, 15000000);
+  #if defined(USE_FRAM)
+    #include <Fram.h>
+    FramClass EEPROM(PB0, PB3, PB4, PB5, 15000000);
   #endif
 
   //Much of the below is not correct, but included to allow compilation
