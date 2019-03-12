@@ -251,7 +251,7 @@ void alpha4hz(){
 static inline uint8_t correctionAlphaN() {
   uint8_t alphaNvalue = 100;
     static uint8_t startMAP = 100;
-    static uint8_t endMAP = 280;
+    static uint16_t endMAP = 280;
     static uint8_t startCorr = 100;
     static uint8_t endCorr = 128;
     alphaNvalue = map(currentStatus.MAP, startMAP, endMAP, startCorr, endCorr);
@@ -326,7 +326,7 @@ static inline int8_t correctionTimingAlphaN(int8_t advance){
   if ((configPage2.ignAlgorithm == LOAD_SOURCE_TPS) && (currentStatus.MAP > 100)){
     uint8_t timingCorr = 0;
     static uint8_t startMAP = 100;
-    static uint8_t endMAP = 280;
+    static uint16_t endMAP = 280;
     static uint8_t startTiming = 1;
     static uint8_t endTiming = 8;
     timingCorr = map(currentStatus.MAP, startMAP, endMAP, startTiming, endTiming);
