@@ -714,7 +714,7 @@ void triggerPri_BasicDistributor()
         if( currentStatus.hasSync == true ) 
         { 
           currentStatus.syncLossCounter++;
-          currentStatus.hasSync == false;
+          currentStatus.hasSync = false;
         }
       }
       

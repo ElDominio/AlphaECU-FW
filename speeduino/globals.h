@@ -410,8 +410,8 @@ struct statuses {
   volatile byte runSecs; //Counter of seconds since cranking commenced (overflows at 255 obviously)
   volatile byte secl; //Continous
   volatile unsigned int loopsPerSecond;
-  boolean launchingSoft; //True when in launch control soft limit mode
-  boolean launchingHard; //True when in launch control hard limit mode
+  bool launchingSoft; //True when in launch control soft limit mode
+  bool launchingHard; //True when in launch control hard limit mode
   uint16_t freeRAM;
   unsigned int clutchEngagedRPM;
   bool flatShiftingHard;
@@ -460,8 +460,7 @@ struct config2 {
   byte pinMapping; // The board / ping mapping to be used
   byte tachoPin : 6; //Custom pin setting for tacho output
   byte tachoDiv : 2; //Whether to change the tacho speed
-  byte tachoDuration : 3; //The duration of the tacho pulse in mS
-  byte unused2_17d : 5;
+  byte tachoDuration; //The duration of the tacho pulse in mS
   byte unused2_18;
   byte tpsThresh;
   byte taeTime;
@@ -768,8 +767,8 @@ struct config9 {
   uint8_t Auxinpinb[16];            // digital pin number when internal aux in use
 
   byte iacStepperInv : 1;  //stepper direction of travel to allow reversing. 0=normal, 1=inverted.
+  byte iacCoolTime : 3; // how long to wait for the stepper to cool between steps
 
-  byte unused10_153;
   byte unused10_154;
   byte unused10_155;
   byte unused10_156;
