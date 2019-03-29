@@ -83,6 +83,12 @@ void alphaPinSetup() {
       pinMode(pinACpress, INPUT_PULLUP);
       pinMode(pinACtemp, INPUT);
       pinMode(pinOilPress, INPUT_PULLUP);
+      break;
+     case 8:
+      pinAC = 39;
+      pinAcReq = 42;
+      pinMode(pinAC, OUTPUT);
+      pinMode(pinAcReq, INPUT);
     //pinMode(pinCLTgauge, OUTPUT);
     default:
       break;
@@ -227,6 +233,14 @@ void readACReq()
       BIT_CLEAR(alphaVars.alphaBools1, BIT_AC_REQ);
     }
   }
+  else if (alphaVars.carSelect == 8) {
+    if (digitalRead(pinAcReq) == HIGH) {
+      BIT_SET(alphaVars.alphaBools1, BIT_AC_REQ); //all checks are done in hardware
+    }
+    else {
+      BIT_CLEAR(alphaVars.alphaBools1, BIT_AC_REQ);
+    }
+  }
 }
 
 //Simple correction if VVL is active
@@ -299,7 +313,7 @@ static inline int8_t correctionZeroThrottleTiming(int8_t advance)
   int8_t ignZeroThrottleValue = advance;
     if(configPage4.idleZTTenabled &&
       (currentStatus.TPS < configPage4.idleTPSlimit) &&
-      (currentStatus.MAP < configPage4.idleMAPlimit) &&
+      /*(currentStatus.MAP < configPage4.idleMAPlimit) &&*/
       (!BIT_CHECK(currentStatus.engine, BIT_ENGINE_ASE))) //Check whether TPS coorelates to zero value
     {
       if((currentStatus.RPM > idleRPMmin) && (currentStatus.RPM < idleRPMmax)) {
@@ -336,26 +350,6 @@ static inline int8_t correctionTimingAlphaN(int8_t advance){
   return timingAlphaN;
 }
 
-void highIdleFunc() {
-  //high idle function
-  if (( currentStatus.RPM > 1150 ) && ( currentStatus.TPS > 2 )&& (currentStatus.rpmDOT < -200)) 
-  {
-    alphaVars.highIdleCount++;
-    if (alphaVars.highIdleCount >= 2 ) {
-      BIT_SET(alphaVars.alphaBools1, BIT_HIGH_IDLE);
-    }
-  }
-  else {
-    if (alphaVars.highIdleCount > 0) {
-      alphaVars.highIdleCount--;
-    }
-    else if (alphaVars.highIdleCount == 0)
-    {
-      BIT_CLEAR(alphaVars.alphaBools1, BIT_HIGH_IDLE);
-    }
-  }
-  alphaVars.highIdleCount = constrain(alphaVars.highIdleCount, 0, 12);
-}
 
 void DFCOwaitFunc() {
   //DFCO wait time
@@ -426,21 +420,43 @@ void XRSgaugeCLT() {
   }
 }
 
+void highIdleFunc() {
+  //high idle function
+  if (( currentStatus.RPM > 1150 ) && ( currentStatus.TPS > 2 )&& (currentStatus.rpmDOT < -200)) 
+  {
+    alphaVars.highIdleCount++;
+    if (alphaVars.highIdleCount >= 2 ) {
+      BIT_SET(alphaVars.alphaBools1, BIT_HIGH_IDLE);
+    }
+  }
+  else {
+    if (alphaVars.highIdleCount > 0) {
+      alphaVars.highIdleCount--;
+    }
+    else if (alphaVars.highIdleCount == 0)
+    {
+      BIT_CLEAR(alphaVars.alphaBools1, BIT_HIGH_IDLE);
+    }
+  }
+  alphaVars.highIdleCount = constrain(alphaVars.highIdleCount, 0, 12);
+}
+
 void alphaIdleMods() {
   if ((BIT_CHECK(currentStatus.engine, BIT_ENGINE_ASE))) {
-    currentStatus.idleDuty = table2D_getValue(&iacCrankDutyTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET);
+    currentStatus.idleDuty = currentStatus.idleDuty + (table2D_getValue(&iacCrankDutyTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET))/4;
   }
-  if ((BIT_CHECK(alphaVars.alphaBools1, BIT_HIGH_IDLE)) && (currentStatus.idleDuty < 60)) {
-    currentStatus.idleDuty = currentStatus.idleDuty + alphaVars.highIdleCount;
+  if ((BIT_CHECK(alphaVars.alphaBools1, BIT_HIGH_IDLE)) && (currentStatus.idleDuty < 60) && (!(BIT_CHECK(currentStatus.engine, BIT_ENGINE_ASE)))) {
+    currentStatus.idleDuty = currentStatus.idleDuty + alphaVars.highIdleCount + 2;
+    Serial.print("idle duty = ");Serial.println(currentStatus.idleDuty);
   }
   if (BIT_CHECK(alphaVars.alphaBools1, BIT_AC_REQ)) {
-    currentStatus.idleDuty = currentStatus.idleDuty + 10;
+   // currentStatus.idleDuty = currentStatus.idleDuty + 10;
   }
-  if ((currentStatus.RPM > 1600) && (currentStatus.TPS < 3) && (currentStatus.coolant > 60)){
+ /* if ((currentStatus.RPM > 1600) && (currentStatus.TPS < 3) && (currentStatus.coolant > 60)){
     currentStatus.idleDuty = 0;
-  }
+  }*/
   if (currentStatus.fanOn){
-    currentStatus.idleDuty = currentStatus.idleDuty + 2;
+   // currentStatus.idleDuty = currentStatus.idleDuty + 2;
   }
 }
 
@@ -540,9 +556,6 @@ void ghostCamTimer(){
 }
 
 void forceStallOff(){
- /* if (!(BIT_CHECK(alphaVars.bools1, BIT_STALL_WAIT))){
-    BIT_SET(alphaVars.bools1, BIT_STALL_WAIT);
-  }*/
   if((alphaVars.stallCount < 1) && (currentStatus.RPM != 0)){
     alphaVars.stallCount++;
   }
@@ -555,7 +568,6 @@ void forceStallOffTimer(){
     alphaVars.stallCount++;
   }
   else if (alphaVars.stallCount > stallWaitTime){
-    //BIT_CLEAR(alphaVars.bools1, BIT_STALL_WAIT);
     BIT_CLEAR(currentStatus.spark, BIT_SPARK_HRDLIM);
     alphaVars.stallCount = 0;
   }
@@ -595,8 +607,8 @@ void maxStallTimeMod(){
   BIT_CLEAR(alphaVars.alphaBools2, BIT_CRK_ALLOW); //alphamods
   BIT_CLEAR(alphaVars.alphaBools2, BIT_SKIP_TOOTH);
   if(!(BIT_CHECK(currentStatus.engine, BIT_ENGINE_CRANK)) && (currentStatus.RPM > 500)){
-    static uint8_t timeDivider = 6;
-    MAX_STALL_TIME = MAX_STALL_TIME / timeDivider;
+   // static uint8_t timeDivider = 6;
+  //  MAX_STALL_TIME = MAX_STALL_TIME / timeDivider;
   }
 }
 

@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <stdint.h> //https://developer.mbed.org/handbook/C-Data-Types
 //************************************************
 #include "globals.h"
-#include "speeduino.h"
+#include "alphaecu.h"
 #include "table.h"
 #include "scheduler.h"
 #include "comms.h"

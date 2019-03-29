@@ -5,8 +5,8 @@
 
 struct alphaMods{
 //***
-  byte carSelect = 0; //0 - generic car; 1 - Corolla XRS; 2 - Hyundai Tiburon; 
-  //3 - Subaru WRX; 4 - Audi A4 1.8T; 5 - 1988 Mazda RX7; 6- 98 Mustang V6; 7 - DCwerx; 255 - mods disabled
+  byte carSelect = 8; //0 - generic car; 1 - Corolla XRS; 2 - Hyundai Tiburon; 
+  //3 - Subaru WRX; 4 - Audi A4 1.8T; 5 - 1988 Mazda RX7; 6- 98 Mustang V6; 7 - DCwerx; 8 - 1994 BMW 328i; 255 - mods disabled
   
   
   

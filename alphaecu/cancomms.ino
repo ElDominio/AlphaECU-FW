@@ -114,11 +114,11 @@ void canCommand()
       break;
 
     case 's': // send the "a" stream code version
-      CANSerial.write("Speeduino csx02018.7");
+      CANSerial.write("AlphaECU csx02018.7");
        break;
 
     case 'S': // send code version
-      CANSerial.write("Speeduino 2018.7-dev");
+      CANSerial.write("AlphaECU 2018.7-dev");
       break;
       
     case 'Q': // send code version
