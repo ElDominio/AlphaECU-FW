@@ -2,7 +2,7 @@
 #include "init.h"
 #include "storage.h"
 #include "updates.h"
-#include "alphaecu.h"
+#include "speeduino.h"
 #include "timers.h"
 #include "cancomms.h"
 #include "utils.h"
