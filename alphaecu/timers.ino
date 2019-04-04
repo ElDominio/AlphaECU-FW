@@ -136,8 +136,6 @@ if (loop100ms == 100)
   if (loop250ms == 250)
   {
     loop250ms = 0; //Reset Counter
-    
-    highIdleFunc();
     BIT_SET(TIMER_mask, BIT_TIMER_4HZ);
     #if defined(CORE_STM32) //debug purpose, only visual for running code
       digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));

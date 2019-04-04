@@ -136,32 +136,7 @@ void audiFanControl()
       }
     }
   }
-  /*if (currentStatus.coolant < 80){
-    if (loopCLT == 1){
-      digitalWrite(pinFan2,LOW);
-     // Serial.print("LOW LoopCLT =");Serial.println(pinFan2);
-    }
-    else if (loopCLT == 21){
-      digitalWrite(pinFan2,HIGH);
-      //Serial.print("HIGH LoopCLT =");Serial.println(loopCLT);
-    }
-    }
-    else if ((currentStatus.coolant >= 80) && (currentStatus.coolant < 90)){
-    if (loopCLT == 100){
-      digitalWrite(pinFan2,LOW);
-    }
-    else{
-      digitalWrite(pinFan2,HIGH);
-    }
-    }
-    else if (currentStatus.coolant >= 90){
-    if (loopCLT < 150){
-      digitalWrite(pinFan2,LOW);
-    }
-    else{
-      digitalWrite(pinFan2,HIGH);
-    }
-    }*/
+  
 }
 
 void ACControl()
@@ -169,6 +144,7 @@ void ACControl()
   if ((BIT_CHECK(alphaVars.alphaBools1, BIT_AC_REQ)) && (currentStatus.TPS < 60) && (currentStatus.RPM > 600) && (currentStatus.RPM < 3600)) {
     digitalWrite(pinAC, HIGH);  // turn on AC compressor
     BIT_SET(alphaVars.alphaBools1, BIT_AC_ON);
+    Serial.println("ACOUT ON");
   }
   else {
     digitalWrite(pinAC, LOW);  // shut down AC compressor
@@ -234,11 +210,13 @@ void readACReq()
     }
   }
   else if (alphaVars.carSelect == 8) {
-    if (digitalRead(pinAcReq) == HIGH) {
+    if (digitalRead(pinAcReq) == LOW) {
       BIT_SET(alphaVars.alphaBools1, BIT_AC_REQ); //all checks are done in hardware
+      Serial.println("ACREQ ON");
     }
     else {
-      BIT_CLEAR(alphaVars.alphaBools1, BIT_AC_REQ);
+     BIT_CLEAR(alphaVars.alphaBools1, BIT_AC_REQ);
+     Serial.println("ACREQ OFF");
     }
   }
 }
@@ -254,6 +232,7 @@ void alpha4hz(){
 //alphamods
   if ((alphaVars.carSelect != 255) && (alphaVars.carSelect != 0)){
   readACReq();
+  highIdleFunc();
   if(digitalRead(pinRollingAL)){
     BIT_SET(alphaVars.alphaBools2, BIT_RLING_TRIG);
   }
@@ -422,14 +401,15 @@ void XRSgaugeCLT() {
 
 void highIdleFunc() {
   //high idle function
-  if (( currentStatus.RPM > 1150 ) && ( currentStatus.TPS > 2 )&& (currentStatus.rpmDOT < -200)) 
+  static uint16_t startRPM = 1150;
+  if (( currentStatus.RPM > startRPM ) && ( currentStatus.TPS > 2 )&& (currentStatus.rpmDOT < -200)) 
   {
     alphaVars.highIdleCount++;
     if (alphaVars.highIdleCount >= 2 ) {
       BIT_SET(alphaVars.alphaBools1, BIT_HIGH_IDLE);
     }
   }
-  else {
+  else if (currentStatus.RPM < startRPM){
     if (alphaVars.highIdleCount > 0) {
       alphaVars.highIdleCount--;
     }
@@ -438,7 +418,7 @@ void highIdleFunc() {
       BIT_CLEAR(alphaVars.alphaBools1, BIT_HIGH_IDLE);
     }
   }
-  alphaVars.highIdleCount = constrain(alphaVars.highIdleCount, 0, 12);
+  alphaVars.highIdleCount = constrain(alphaVars.highIdleCount, 0, 48);
 }
 
 void alphaIdleMods() {
@@ -446,7 +426,7 @@ void alphaIdleMods() {
     currentStatus.idleDuty = currentStatus.idleDuty + (table2D_getValue(&iacCrankDutyTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET))/4;
   }
   if ((BIT_CHECK(alphaVars.alphaBools1, BIT_HIGH_IDLE)) && (currentStatus.idleDuty < 60) && (!(BIT_CHECK(currentStatus.engine, BIT_ENGINE_ASE)))) {
-    currentStatus.idleDuty = currentStatus.idleDuty + alphaVars.highIdleCount + 2;
+    currentStatus.idleDuty = currentStatus.idleDuty + (alphaVars.highIdleCount/4) + 2;
     Serial.print("idle duty = ");Serial.println(currentStatus.idleDuty);
   }
   if (BIT_CHECK(alphaVars.alphaBools1, BIT_AC_REQ)) {
