@@ -144,7 +144,7 @@ void ACControl()
   if ((BIT_CHECK(alphaVars.alphaBools1, BIT_AC_REQ)) && (currentStatus.TPS < 60) && (currentStatus.RPM > 600) && (currentStatus.RPM < 3600)) {
     digitalWrite(pinAC, HIGH);  // turn on AC compressor
     BIT_SET(alphaVars.alphaBools1, BIT_AC_ON);
-    Serial.println("ACOUT ON");
+   // Serial.println("ACOUT ON");
   }
   else {
     digitalWrite(pinAC, LOW);  // shut down AC compressor
@@ -212,13 +212,17 @@ void readACReq()
   else if (alphaVars.carSelect == 8) {
     if (digitalRead(pinAcReq) == LOW) {
       BIT_SET(alphaVars.alphaBools1, BIT_AC_REQ); //all checks are done in hardware
-      Serial.println("ACREQ ON");
+     // Serial.println("ACREQ ON");
     }
     else {
      BIT_CLEAR(alphaVars.alphaBools1, BIT_AC_REQ);
-     Serial.println("ACREQ OFF");
+    // Serial.println("ACREQ OFF");
     }
+    /*digitalWrite(pinAC, HIGH);  // turn on AC compressor
+    BIT_SET(alphaVars.alphaBools1, BIT_AC_REQ); //all checks are done in hardware
+      Serial.println("ACREQ ON");*/
   }
+  
 }
 
 //Simple correction if VVL is active
@@ -228,6 +232,7 @@ static inline uint8_t correctionVVL()
     VVLValue = 102;  //Adds 7% fuel when VVL is active
   return VVLValue;
 }
+
 void alpha4hz(){
 //alphamods
   if ((alphaVars.carSelect != 255) && (alphaVars.carSelect != 0)){
@@ -430,7 +435,7 @@ void alphaIdleMods() {
     Serial.print("idle duty = ");Serial.println(currentStatus.idleDuty);
   }
   if (BIT_CHECK(alphaVars.alphaBools1, BIT_AC_REQ)) {
-   // currentStatus.idleDuty = currentStatus.idleDuty + 10;
+    currentStatus.idleDuty = currentStatus.idleDuty + 4;
   }
  /* if ((currentStatus.RPM > 1600) && (currentStatus.TPS < 3) && (currentStatus.coolant > 60)){
     currentStatus.idleDuty = 0;

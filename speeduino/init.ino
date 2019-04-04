@@ -966,6 +966,7 @@ void setPinMapping(byte boardID)
       pinLaunch = 51; //Can be overwritten below
       pinFlex = 2; // Flex sensor (Must be external interrupt enabled)
       pinResetControl = 43; //Reset control output
+      alphaPinSetup();
 
       #if defined(CORE_TEENSY)
         pinInjector6 = 51;
