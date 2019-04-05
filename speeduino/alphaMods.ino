@@ -432,7 +432,7 @@ void alphaIdleMods() {
   }
   if ((BIT_CHECK(alphaVars.alphaBools1, BIT_HIGH_IDLE)) && (currentStatus.idleDuty < 60) && (!(BIT_CHECK(currentStatus.engine, BIT_ENGINE_ASE)))) {
     currentStatus.idleDuty = currentStatus.idleDuty + (alphaVars.highIdleCount/4) + 2;
-    Serial.print("idle duty = ");Serial.println(currentStatus.idleDuty);
+    //Serial.print("idle duty = ");Serial.println(currentStatus.idleDuty);
   }
   if (BIT_CHECK(alphaVars.alphaBools1, BIT_AC_REQ)) {
     currentStatus.idleDuty = currentStatus.idleDuty + 4;
