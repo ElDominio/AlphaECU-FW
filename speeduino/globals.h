@@ -2,6 +2,7 @@
 #define GLOBALS_H
 #include <Arduino.h>
 #include "table.h"
+#include <assert.h>
 
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega2561__)
   #define BOARD_DIGITAL_GPIO_PINS 54
@@ -198,6 +199,11 @@
 #define KNOCK_MODE_DIGITAL  1
 #define KNOCK_MODE_ANALOG   2
 
+#define FUEL2_MODE_OFF      0
+#define FUEL2_MODE_MULTIPLY 1
+#define FUEL2_MODE_ADD      2
+#define FUEL2_MODE_SWITCH   3
+
 #define RESET_CONTROL_DISABLED             0
 #define RESET_CONTROL_PREVENT_WHEN_RUNNING 1
 #define RESET_CONTROL_PREVENT_ALWAYS       2
@@ -226,14 +232,12 @@
 const char TSfirmwareVersion[] PROGMEM = "Speeduino";
 
 const byte data_structure_version = 2; //This identifies the data structure when reading / writing.
-//const byte page_size = 64;
-//const int16_t npage_size[11] PROGMEM = {0,288,128,288,128,288,128,240,192,192,192};
-#define NUM_PAGES     11
-const uint16_t npage_size[NUM_PAGES] PROGMEM = {0,128,288,288,128,288,128,240,192,192,192};
-//const byte page11_size = 128;
+#define NUM_PAGES     12
+const uint16_t npage_size[NUM_PAGES] = {0,128,288,288,128,288,128,240,192,192,192,288};
 #define MAP_PAGE_SIZE 288
 
 struct table3D fuelTable; //16x16 fuel map
+struct table3D fuelTable2; //16x16 fuel map
 struct table3D ignitionTable; //16x16 ignition map
 struct table3D afrTable; //16x16 afr target map
 struct table3D stagingTable; //8x8 fuel staging table
@@ -245,11 +249,16 @@ struct table3D trim3Table; //6x6 Fuel trim 3 map
 struct table3D trim4Table; //6x6 Fuel trim 4 map
 struct table2D taeTable; //4 bin TPS Acceleration Enrichment map (2D)
 struct table2D WUETable; //10 bin Warm Up Enrichment map (2D)
+struct table2D ASETable; //4 bin After Start Enrichment map (2D)
+struct table2D ASECountTable; //4 bin After Start duration map (2D)
+struct table2D PrimingPulseTable; //4 bin Priming pulsewidth map (2D)
 struct table2D crankingEnrichTable; //4 bin cranking Enrichment map (2D)
 struct table2D dwellVCorrectionTable; //6 bin dwell voltage correction (2D)
 struct table2D injectorVCorrectionTable; //6 bin injector voltage correction (2D)
 struct table2D IATDensityCorrectionTable; //9 bin inlet air temperature density correction (2D)
 struct table2D IATRetardTable; //6 bin ignition adjustment based on inlet air temperature  (2D)
+struct table2D IDLEAdvanceTable; //6 bin idle advance adjustment table based on RPM difference  (2D)
+struct table2D CLTAdvanceTable; //6 bin ignition adjustment based on coolant temperature  (2D)
 struct table2D rotarySplitTable; //8 bin ignition split curve for rotary leading/trailing  (2D)
 struct table2D flexFuelTable;  //6 bin flex fuel correction table for fuel adjustments (2D)
 struct table2D flexAdvTable;   //6 bin flex fuel correction table for timing advance (2D)
@@ -368,6 +377,7 @@ struct statuses {
   byte tpsDOT;
   volatile int rpmDOT;
   byte VE;
+  byte VE2;
   byte O2;
   byte O2_2;
   int coolant;
@@ -378,24 +388,25 @@ struct statuses {
   int O2ADC;
   int O2_2ADC;
   int dwell;
-  byte dwellCorrection; //The amount of correction being applied to the dwell time.
-  byte battery10; //The current BRV in volts (multiplied by 10. Eg 12.5V = 125)
-  int8_t advance; //Signed 8 bit as advance can now go negative (ATDC)
-  byte corrections;
-  int16_t TAEamount; //The amount of accleration enrichment currently being applied
-  byte egoCorrection; //The amount of closed loop AFR enrichment currently being applied
-  byte wueCorrection; //The amount of warmup enrichment currently being applied
-  byte batCorrection; //The amount of battery voltage enrichment currently being applied
-  byte iatCorrection; //The amount of inlet air temperature adjustment currently being applied
-  byte launchCorrection; //The amount of correction being applied if launch control is active
-  byte flexCorrection; //Amount of correction being applied to compensate for ethanol content
-  int8_t flexIgnCorrection; //Amount of additional advance being applied based on flex. Note the type as this allows for negative values
+  byte dwellCorrection; /**< The amount of correction being applied to the dwell time. */
+  byte battery10; /**< The current BRV in volts (multiplied by 10. Eg 12.5V = 125) */
+  int8_t advance; /**< Signed 8 bit as advance can now go negative (ATDC) */
+  byte corrections; /**< The total current corrections % amount */
+  int16_t TAEamount; /**< The amount of accleration enrichment currently being applied */
+  byte egoCorrection; /**< The amount of closed loop AFR enrichment currently being applied */
+  byte wueCorrection; /**< The amount of warmup enrichment currently being applied */
+  byte batCorrection; /**< The amount of battery voltage enrichment currently being applied */
+  byte iatCorrection; /**< The amount of inlet air temperature adjustment currently being applied */
+  byte launchCorrection; /**< The amount of correction being applied if launch control is active */
+  byte flexCorrection; /**< Amount of correction being applied to compensate for ethanol content */
+  int8_t flexIgnCorrection; /**< Amount of additional advance being applied based on flex. Note the type as this allows for negative values */
   byte afrTarget;
-  byte idleDuty;
-  bool idleUpActive;
-  bool fanOn; //Whether or not the fan is turned on
-  volatile byte ethanolPct; //Ethanol reading (if enabled). 0 = No ethanol, 100 = pure ethanol. Eg E85 = 85.
-  unsigned long TAEEndTime; //The target end time used whenever TAE is turned on
+  byte idleDuty; /**< The current idle duty cycle amount if PWM idle is selected and active */
+  byte CLIdleTarget; /**< The target idle RPM (when closed loop idle control is active) */
+  bool idleUpActive; /**< Whether the externally controlled idle up is currently active */
+  bool fanOn; /**< Whether or not the fan is turned on */
+  volatile byte ethanolPct; /**< Ethanol reading (if enabled). 0 = No ethanol, 100 = pure ethanol. Eg E85 = 85. */
+  unsigned long TAEEndTime; /**< The target end time used whenever TAE is turned on */
   volatile byte status1;
   volatile byte spark;
   volatile byte spark2;
@@ -408,54 +419,53 @@ struct statuses {
   unsigned int PW6; //In uS
   unsigned int PW7; //In uS
   unsigned int PW8; //In uS
-  volatile byte runSecs; //Counter of seconds since cranking commenced (overflows at 255 obviously)
-  volatile byte secl; //Continous
-  volatile unsigned int loopsPerSecond;
-  bool launchingSoft; //True when in launch control soft limit mode
-  bool launchingHard; //True when in launch control hard limit mode
+  volatile byte runSecs; /**< Counter of seconds since cranking commenced (overflows at 255 obviously) */
+  volatile byte secl; /**< Counter incrementing once per second. Will overflow after 255 and begin again. This is used by TunerStudio to maintain comms sync */
+  volatile uint32_t loopsPerSecond; /**< A performance indicator showing the number of main loops that are being executed each second */ 
+  bool launchingSoft; /**< Indicator showing whether soft launch control adjustments are active */
+  bool launchingHard; /**< Indicator showing whether hard launch control adjustments are active */
   uint16_t freeRAM;
-  unsigned int clutchEngagedRPM;
+  unsigned int clutchEngagedRPM; /**< The RPM at which the clutch was last depressed. Used for distinguishing between launch control and flat shift */ 
   bool flatShiftingHard;
-  volatile uint32_t startRevolutions; //A counter for how many revolutions have been completed since sync was achieved.
+  volatile uint32_t startRevolutions; /**< A counter for how many revolutions have been completed since sync was achieved. */
   uint16_t boostTarget;
   byte testOutputs;
   bool testActive;
   uint16_t boostDuty; //Percentage value * 100 to give 2 points of precision
-  byte idleLoad; //Either the current steps or current duty cycle for the idle control.
+  byte idleLoad; /**< Either the current steps or current duty cycle for the idle control. */
   uint16_t canin[16];   //16bit raw value of selected canin data for channel 0-15
-  uint8_t current_caninchannel = 0; //start off at channel 0
-  uint16_t crankRPM = 400; //The actual cranking RPM limit. Saves us multiplying it everytime from the config page
+  uint8_t current_caninchannel = 0; /**< Current CAN channel, defaults to 0 */
+  uint16_t crankRPM = 400; /**< The actual cranking RPM limit. This is derived from the value in the config page, but saves us multiplying it everytime it's used (Config page value is stored divided by 10) */
   volatile byte status3;
-  int16_t flexBoostCorrection; //Amount of boost added based on flex
+  int16_t flexBoostCorrection; /**< Amount of boost added based on flex */
   byte nitrous_status;
   byte nSquirts;
-  byte nChannels; //Number of fuel and ignition channels
+  byte nChannels; /**< Number of fuel and ignition channels.  */
   int16_t fuelLoad;
+  int16_t fuelLoad2;
   int16_t ignLoad;
-  bool fuelPumpOn; //The current status of the fuel pump
+  bool fuelPumpOn; /**< Indicator showing the current status of the fuel pump */
   byte syncLossCounter;
   byte knockRetard;
   bool knockActive;
   bool toothLogEnabled;
   bool compositeLogEnabled;
 
-  //Helpful bitwise operations:
-  //Useful reference: http://playground.arduino.cc/Code/BitMath
-  // y = (x >> n) & 1;    // n=0..15.  stores nth bit of x in y.  y becomes 0 or 1.
-  // x &= ~(1 << n);      // forces nth bit of x to be 0.  all other bits left alone.
-  // x |= (1 << n);       // forces nth bit of x to be 1.  all other bits left alone.
-
 };
 struct statuses currentStatus; //The global status object
 
-//Page 1 of the config - See the ini file for further reference
-//This mostly covers off variables that are required for fuel
+/**
+ * @brief This mostly covers off variables that are required for fuel
+ * 
+ * See the ini file for further reference
+ * 
+ */
 struct config2 {
 
   byte unused2_1;
   byte unused2_2;
-  byte asePct;  //Afterstart enrichment (%)
-  byte aseCount; //Afterstart enrichment cycles. This is the number of ignition cycles that the afterstart enrichment % lasts for
+  byte unused2_3;  //Was ASE
+  byte unused2_4;  //Was ASECount
   byte wueValues[10]; //Warm up enrichment array (10 bytes)
   byte crankingPct; //Cranking enrichment
   byte pinMapping; // The board / ping mapping to be used
@@ -513,7 +523,7 @@ struct config2 {
   byte perToothIgn : 1;
   byte dfcoEnabled : 1; //Whether or not DFCO is turned on
 
-  byte primePulse;
+  byte unused2_39;  //Was primePulse
   byte dutyLim;
   byte flexFreqLow; //Lowest valid frequency reading from the flex sensor
   byte flexFreqHigh; //Highest valid frequency reading from the flex sensor
@@ -549,8 +559,12 @@ struct config2 {
 
   byte fanWhenOff : 1;      // Only run fan when engine is running
   byte fanUnused : 7;
-
-  byte unused1_70[57];
+  byte asePct[4];  //Afterstart enrichment (%)
+  byte aseCount[4]; //Afterstart enrichment cycles. This is the number of ignition cycles that the afterstart enrichment % lasts for
+  byte aseBins[4]; //Afterstart enrichment temp axis
+  byte primePulse[4]; //Priming pulsewidth
+  byte primeBins[4]; //Priming temp axis
+  byte unused2_91[37];
 
 #if defined(CORE_AVR)
   };
@@ -623,9 +637,11 @@ struct config4 {
   byte ADCFILTER_BAT;
   byte ADCFILTER_MAP; //This is only used on Instantaneous MAP readings and is intentionally very weak to allow for faster response
   byte ADCFILTER_BARO;
+  
+  byte cltAdvBins[6]; // Coolant Temp timing advance curve bins
+  byte cltAdvValues[6]; // Coolant timing advance curve values
 
-  uint8_t idleZTTenabled : 1;
-  uint8_t idleZTTunused : 7;
+  byte unused2_64[45];
 
   uint8_t idleTPSlimit;
   uint8_t idleMAPlimit;
@@ -895,7 +911,11 @@ struct config10 {
   byte knock_recoveryStepTime;
   byte knock_recoveryStep;
 
-  byte unused11_122_191[70];
+  byte fuel2Algorithm : 3;
+  byte fuel2Mode : 2;
+  byte unused10_122 : 3;
+
+  byte unused11_123_191[69];
 
 #if defined(CORE_AVR)
   };
@@ -985,5 +1005,11 @@ volatile uint16_t ignitionCount; //The count of ignition events that have taken 
 extern byte cltCalibrationTable[CALIBRATION_TABLE_SIZE];
 extern byte iatCalibrationTable[CALIBRATION_TABLE_SIZE];
 extern byte o2CalibrationTable[CALIBRATION_TABLE_SIZE];
+
+static_assert(sizeof(struct config2) == 128, "configPage2 size is not 128");
+static_assert(sizeof(struct config4) == 128, "configPage4 size is not 128");
+static_assert(sizeof(struct config6) == 128, "configPage6 size is not 128");
+static_assert(sizeof(struct config9) == 192, "configPage9 size is not 192");
+static_assert(sizeof(struct config10) == 192, "configPage10 size is not 192");
 
 #endif // GLOBALS_H

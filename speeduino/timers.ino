@@ -250,6 +250,5 @@ if (loop100ms == 100)
 #if defined(CORE_AVR) //AVR chips use the ISR for this
     //Reset Timer2 to trigger in another ~1ms
     TCNT2 = 131;            //Preload timer2 with 100 cycles, leaving 156 till overflow.
-    //TIFR2  = 0x00;          //Timer2 INT Flag Reg: Clear Timer Overflow Flag
 #endif
 }
