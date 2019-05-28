@@ -173,6 +173,7 @@ void command()
       break;
 
     case 'P': // set the current page
+      //This is a legacy function and is no longer used by TunerStudio. It is maintained for compatibility with other systems
       //A 2nd byte of data is required after the 'P' specifying the new page number.
       cmdPending = true;
 
@@ -180,7 +181,19 @@ void command()
       {
         currentPage = Serial.read();
         //This converts the ascii number char into binary. Note that this will break everyything if there are ever more than 48 pages (48 = asci code for '0')
-        if (currentPage >= '0') { currentPage -= '0'; }
+        if ((currentPage >= '0') && (currentPage <= '9')) // 0 - 9
+        {
+          currentPage -= 48;
+        }
+        else if ((currentPage >= 'a') && (currentPage <= 'f')) // 10 - 15
+        {
+          currentPage -= 87;
+        }
+        else if ((currentPage >= 'A') && (currentPage <= 'F'))
+        {
+          currentPage -= 55;
+        }
+        
         // Detecting if the current page is a table/map
         if ( (currentPage == veMapPage) || (currentPage == ignMapPage) || (currentPage == afrMapPage) ) { isMap = true; }
         else { isMap = false; }
@@ -500,7 +513,7 @@ void sendValues(uint16_t offset, uint16_t packetLength, byte cmd, byte portNum)
   fullStatus[13] = currentStatus.wueCorrection; //Warmup enrichment (%)
   fullStatus[14] = lowByte(currentStatus.RPM); //rpm HB
   fullStatus[15] = highByte(currentStatus.RPM); //rpm LB
-  fullStatus[16] = (byte)(currentStatus.TAEamount >> 1); //TPS acceleration enrichment (%) divided by 2 (Can exceed 255)
+  fullStatus[16] = (byte)(currentStatus.AEamount >> 1); //TPS acceleration enrichment (%) divided by 2 (Can exceed 255)
   fullStatus[17] = currentStatus.corrections; //Total GammaE (%)
   fullStatus[18] = currentStatus.VE; //Current VE 1 (%)
   fullStatus[19] = currentStatus.afrTarget;
@@ -592,6 +605,7 @@ void sendValues(uint16_t offset, uint16_t packetLength, byte cmd, byte portNum)
   fullStatus[89] = lowByte(currentStatus.dwell);
   fullStatus[90] = highByte(currentStatus.dwell);
   fullStatus[91] = currentStatus.CLIdleTarget;
+  fullStatus[92] = currentStatus.mapDOT;
 
   for(byte x=0; x<packetLength; x++)
   {
@@ -684,6 +698,7 @@ void sendValuesLegacy()
   temp = currentStatus.VE * 10;
   bytestosend -= Serial.write(temp>>8); // ve1
   bytestosend -= Serial.write(temp); // ve1
+  temp = currentStatus.VE2 * 10;
   bytestosend -= Serial.write(temp>>8); // ve2
   bytestosend -= Serial.write(temp); // ve2
 
@@ -696,8 +711,9 @@ void sendValuesLegacy()
   bytestosend -= Serial.write(temp>>8); // TPSdot
   bytestosend -= Serial.write(temp); // TPSdot
 
-  bytestosend -= Serial.write(99); // MAPdot
-  bytestosend -= Serial.write(99); // MAPdot
+  temp = currentStatus.mapDOT * 10;
+  bytestosend -= Serial.write(temp >> 8); // MAPdot
+  bytestosend -= Serial.write(temp); // MAPdot
 
   temp = currentStatus.dwell * 10;
   bytestosend -= Serial.write(temp>>8); // dwell
